@@ -63,3 +63,4 @@ next-env.d.ts
 /artifacts/
 
 /offline-dist/
+/offline-kuromi-dist/
