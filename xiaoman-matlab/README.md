@@ -4,6 +4,18 @@
 
 在线入口：https://xiaoman-matlab-field-notes.foamy-glade-7347.chatgpt.site
 
+## 离线学习包（不需要代理）
+
+下载仓库中的 [离线学习 ZIP](../downloads/xiaoman-matlab-offline.zip)，解压到固定文件夹，用 Edge 或 Chrome 打开 `index.html`。无需 Node.js、账号或服务器。包含 18 节课程、36 道即时判题、4 个互动实验和 MATLAB 脚本。
+
+- 进度保存在本机浏览器；每次学完请导出 JSON 备份，换设备后可导入合并。
+- 给家人发送导出的 HTML 报告即可查看进度。报告为导出时的快照，不自动同步；也支持只读查看离线 JSON。
+- 请固定文件位置、使用同一浏览器，避免无痕模式。移动文件、清理浏览数据或更换浏览器后可用 JSON 恢复。
+- 课程和实验不需要网络，包内不会自动请求外部资源。Codex 的在线服务仍需要联网，MATLAB 需本机有效安装及许可。实操勾选仅代表学习者自查。
+- 离线版和在线版记录独立，离线版不使用在线学习码。
+
+开发者安装已有依赖后运行 `pnpm build:offline`，输出 `offline-dist/`。构建复用锁文件中 drizzle-kit 已有的 esbuild，不添加生产依赖。HTML 内嵌全部脚本、样式与插图，并使用 `connect-src 'none'` 禁止页面网络请求。
+
 ## 第一次使用
 
 1. 打开网址，在「连接我的学习手账」中创建一份手账。

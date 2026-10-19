@@ -61,3 +61,5 @@ next-env.d.ts
 *.tsbuildinfo
 /.local/
 /artifacts/
+
+/offline-dist/
