@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const base=process.env.TEST_BASE_URL;
+test('live API: persistent grading, learner/viewer isolation, validation and no cross-user disclosure',{skip:!base},async()=>{
+ const call=async(token,body)=>{const response=await fetch(base+'/api/study',{method:body?'POST':'GET',headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});return {status:response.status,data:await response.json()};};
+ assert.equal((await call('')).status,401);
+ const created=await call('',{action:'create'});assert.equal(created.status,201);const {learnerCode,viewerCode}=created.data;
+ assert.match(learnerCode,/^learn-[a-f0-9]{48}$/);assert.match(viewerCode,/^view-[a-f0-9]{48}$/);
+ assert.equal((await call(learnerCode)).data.role,'learner');assert.equal((await call(viewerCode)).data.role,'viewer');
+ assert.equal((await call(viewerCode,{action:'answer',lessonId:'hello',sectionIndex:0,answer:1})).status,403);
+ assert.equal((await call(viewerCode,{action:'practice',lessonId:'hello',checked:true})).status,403);
+ assert.equal((await call(learnerCode,{action:'answer',lessonId:'hello',sectionIndex:0,answer:0})).data.correct,false);
+ assert.equal((await call(learnerCode,{action:'answer',lessonId:'hello',sectionIndex:0,answer:1})).data.correct,true);
+ assert.equal((await call(learnerCode,{action:'answer',lessonId:'hello',sectionIndex:0,answer:2})).data.correct,false);
+ const viewerRead=await call(viewerCode);assert.equal(viewerRead.data.records[0].correct,1);assert.equal(viewerRead.data.records[0].attempts,3);
+ assert.equal(JSON.stringify(viewerRead.data).includes(learnerCode),false);
+ assert.equal((await call(learnerCode,{action:'answer',lessonId:'hello',sectionIndex:0,answer:99})).status,400);
+ assert.equal((await call(learnerCode,{action:'practice',lessonId:'hello',checked:'true'})).status,400);
+ await call(learnerCode,{action:'practice',lessonId:'hello',checked:true});assert.equal((await call(viewerCode)).data.practices[0].checked,1);
+ const other=await call('',{action:'create'});assert.equal((await call(other.data.viewerCode)).data.records.length,0);
+ const invalid=await fetch(base+'/api/study',{method:'POST',body:'{'});assert.equal(invalid.status,400);
+ const cross=await fetch(base+'/api/study',{method:'POST',headers:{Origin:'https://example.invalid','Content-Type':'application/json'},body:JSON.stringify({action:'create'})});assert.equal(cross.status,403);
+});

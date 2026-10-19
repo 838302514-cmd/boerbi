@@ -1,0 +1,6 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { lessons } from '../lib/course.ts';
+mkdirSync('matlab',{recursive:true});
+for(const lesson of lessons) writeFileSync(`matlab/${lesson.id}_practice.m`,`% ${lesson.title}\n% 教学合成数据，使用基础 MATLAB。\n% 预期：${lesson.expected}\n${lesson.code}\n`);
+writeFileSync('matlab/verify_all_lessons.m',`% Runs every educational example and each built-in assertion.\nverifyFolder = fileparts(mfilename('fullpath'));\nverifyFiles = {${lessons.map(l=>`'${l.id}_practice.m'`).join(',')}};\nverifyNames = cell(size(verifyFiles));\nverifyPassed = false(size(verifyFiles));\nverifyMessages = cell(size(verifyFiles));\nfor verifyIndex=1:numel(verifyFiles)\n try\n  run(fullfile(verifyFolder,verifyFiles{verifyIndex}));\n  verifyPassed(verifyIndex)=true;\n  verifyMessages{verifyIndex}='Assertions passed';\n catch verifyError\n  verifyMessages{verifyIndex}=verifyError.message;\n end\n verifyNames{verifyIndex}=verifyFiles{verifyIndex};\nend\nverification = table(verifyNames',verifyPassed',verifyMessages','VariableNames',{'script','passed','message'});\ndisp(verification);\nwritetable(verification,fullfile(verifyFolder,'verification.csv'));\nassert(all(verifyPassed),'Some lesson scripts failed');\n`);
+console.log('Exported 18 MATLAB lessons and verification runner.');
